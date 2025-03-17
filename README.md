@@ -1,19 +1,19 @@
 # 設定上網(LAN,WAN,DHCP,NAT..etc)
 ## 設定LAN port
-```
+```ruby
 /interface bridge
 add name=bridge1
 ```
 ### 將實體port設定至LAN  
 (ether2~{4}或是更多)
-```
+```ruby
 /interface bridge port
 add bridge=bridge1 interface=ether2 internal-path-cost=10 path-cost=10
 add bridge=bridge1 interface=ether3 internal-path-cost=10 path-cost=10
 add bridge=bridge1 interface=ether4 internal-path-cost=10 path-cost=10
 ```
 ## 設定WAN, LAN (提供給firewall rule使用, option)
-```
+```ruby
 /interface list
 add name=WAN
 add name=LAN
@@ -22,18 +22,18 @@ add interface=ether1 list=WAN
 add interface=bridge1 list=LAN
 ```
 ## 設定WAN&LAN ip
-```
+```ruby
 /ip address
 add address=外網ip interface=ether1 network=子網路遮罩 
 add address=192.168.1.1 interface=bridge1 network=192.168.1.0
 ```
 ### 如果是撥號(hinet)
-```
+```ruby
 /interface pppoe-client
 add add-default-route=yes dial-on-demand=yes disabled=no interface=ether1 name=pppoe-out1 use-peer-dns=yes user=xxxx@hinet.net
 ```
 ## 設定內網dhcp
-```
+```ruby
 /ip pool
 add name=dhcp1 ranges=192.168.1.100-192.168.1.200
 /ip dhcp-server
@@ -42,13 +42,13 @@ add address-pool=dhcp1 interface=bridge1 name=server1
 add address=192.168.1.0/24 dns-server=168.95.1.1,8.8.8.8 gateway=192.168.1.1 netmask=24
 ```
 ## 設定NAT
-```
+```ruby
 /ip firewall nat
 add action=masquerade chain=srcnat src-address=192.168.1.0/24
 ```
 # 設定基本功能
 ## 時間
-```
+```ruby
 /system clock
 set time-zone-name=Asia/Taipei
 /system ntp client
@@ -57,7 +57,7 @@ set enabled=yes
 add address=tock.stdtime.gov.tw
 ```
 ## 服務(為了安全建議都關閉或是限制登入ip)
-```
+```ruby
 /ip service
 set telnet disabled=yes
 set ftp disabled=yes
@@ -69,7 +69,7 @@ set api-ssl disabled=yes
 ## 防止WinBox(port 8291)被try  
 (允許錯3次,3次全錯阻擋10min)  
 (ref:https://mhelp.pro/mikrotik-fail2ban-blocking-brute-force-attacks/)
-```
+```ruby
 /ip firewall filter
 add action=jump chain=output comment="F2B Winbox: Jump to Fail2Ban-Destination-IP chain" content="invalid user name or password" jump-target=Fail2Ban-Destination-IP protocol=tcp src-port=8291
 add action=add-dst-to-address-list address-list=BlackList address-list-timeout=10m chain=Fail2Ban-Destination-IP comment="3 Attempt --> BlackList" dst-address-list=LoginFailure02
@@ -79,7 +79,7 @@ add action=add-dst-to-address-list address-list=LoginFailure01 address-list-time
 add action=drop chain=prerouting comment="Drop all" src-address-list=BlackList
 ```
 # 清LOG
-```
+```ruby
 /system script
 add dont-require-permissions=no name=ClearLog owner=admin policy=\
     ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source=":\
@@ -91,7 +91,7 @@ add dont-require-permissions=no name=ClearLog owner=admin policy=\
 ```
 # 設定VPN
 ## IPSec
-```
+```ruby
 /ip ipsec proposal
 add enc-algorithms=aes-128-cbc,aes-128-ctr lifetime=30m name=proposal1 pfs-group=modp1536
 /ip ipsec profile
@@ -109,7 +109,7 @@ add disabled=no distance=1 dst-address=對方網段 gateway=bridge1 routing-tabl
 ```
 ## Wireguard  
 (對端內網:192.168.10.0/24,對端tunnel ip:10.255.255.1/24)
-```
+```ruby
 /interface wireguard
 add listen-port=13231 mtu=1420 name=wireguard1 private-key="你的private-key" public-key="你的public-key"
 /ip address
@@ -121,9 +121,9 @@ add action=accept chain=input comment="allow WireGuard" dst-port=13231 protocol=
 /ip route
 add dst-address=192.168.10.0/24 gateway=wireguard1
 ```
-# Forwarding
-## Forwarding SSH
-```
+# Forwarding  
+## Forwarding SSH  
+```ruby
 /ip firewall filter
 add action=accept chain=forward dst-address=(SSH server IP) dst-port=22 protocol=tcp
 /ip firewall nat
